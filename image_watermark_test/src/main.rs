@@ -144,10 +144,10 @@ pub fn add_svg_watermark(
     // 获取 SVG 的原始尺寸
     let svg_size = tree.size();
 
-    // 计算缩放比例以适应指定的水印尺寸（center crop）
+    // 计算缩放比例以适应指定的水印尺寸（fitCenter）
     let scale_x = config.width as f32 / svg_size.width();
     let scale_y = config.height as f32 / svg_size.height();
-    let scale = scale_x.max(scale_y); // 使用较大的缩放比例实现 center crop
+    let scale = scale_x.min(scale_y); // 使用较小的缩放比例实现 fitCenter，保持宽高比
 
     // 计算实际渲染尺寸
     let render_width = (svg_size.width() * scale) as u32;
@@ -163,28 +163,21 @@ pub fn add_svg_watermark(
         &mut pixmap.as_mut(),
     );
 
-    // 裁剪到指定尺寸（center crop）
-    let crop_x = if render_width > config.width {
-        (render_width - config.width) / 2
-    } else {
-        0
-    };
-    let crop_y = if render_height > config.height {
-        (render_height - config.height) / 2
-    } else {
-        0
-    };
-
-    // 创建裁剪后的图像
+    // 创建指定尺寸的水印图像，并将SVG居中放置（fitCenter）
     let mut watermark_img = RgbaImage::new(config.width, config.height);
+    
+    // 计算居中偏移量
+    let offset_x = (config.width - render_width) / 2;
+    let offset_y = (config.height - render_height) / 2;
 
-    for y in 0..config.height {
-        for x in 0..config.width {
-            let src_x = x + crop_x;
-            let src_y = y + crop_y;
+    // 将渲染的SVG复制到水印图像的中心位置
+    for y in 0..render_height {
+        for x in 0..render_width {
+            let target_x = x + offset_x;
+            let target_y = y + offset_y;
 
-            if src_x < render_width && src_y < render_height {
-                let pixel_idx = ((src_y * render_width + src_x) * 4) as usize;
+            if target_x < config.width && target_y < config.height {
+                let pixel_idx = ((y * render_width + x) * 4) as usize;
                 let pixel_data = pixmap.data();
 
                 if pixel_idx + 3 < pixel_data.len() {
@@ -196,7 +189,7 @@ pub fn add_svg_watermark(
                     // 应用透明度
                     a = (a as f32 * config.opacity) as u8;
 
-                    watermark_img.put_pixel(x, y, Rgba([r, g, b, a]));
+                    watermark_img.put_pixel(target_x, target_y, Rgba([r, g, b, a]));
                 }
             }
         }
