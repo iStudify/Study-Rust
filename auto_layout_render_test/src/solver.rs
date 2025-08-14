@@ -7,6 +7,7 @@ use cassowary::{
 };
 use std::collections::HashMap;
 use thiserror::Error;
+use rusttype::{Font, Scale, point};
 
 #[derive(Debug)]
 pub enum SolverError {
@@ -74,6 +75,7 @@ pub struct LayoutSolver {
     solver: Solver,
     variables: HashMap<ElementId, ElementVariables>,
     canvas_vars: ElementVariables,
+    fonts: HashMap<String, Font<'static>>,
 }
 
 impl LayoutSolver {
@@ -82,6 +84,77 @@ impl LayoutSolver {
             solver: Solver::new(),
             variables: HashMap::new(),
             canvas_vars: ElementVariables::new(),
+            fonts: HashMap::new(),
+        }
+    }
+    
+    /// 加载字体
+    pub fn load_font(&mut self, font_family: &str) -> Result<(), SolverError> {
+        if self.fonts.contains_key(font_family) {
+            return Ok(());
+        }
+        
+        // 使用默认的 DejaVu Sans 字体
+        let font_data = include_bytes!("../assets/fonts/DejaVuSans.ttf");
+        let font = Font::try_from_bytes(font_data as &[u8])
+            .ok_or_else(|| SolverError::ConstraintError("Failed to load DejaVu Sans font".to_string()))?;
+        
+        self.fonts.insert(font_family.to_string(), font);
+        Ok(())
+    }
+    
+    /// 添加内在尺寸约束
+    fn add_intrinsic_size_constraints(&mut self, element: &Element) -> Result<(), SolverError> {
+        match element {
+            Element::Text { content, properties, constraints, .. } => {
+                // 检查是否已有显式的宽高约束
+                let has_width_constraint = constraints.iter().any(|c| matches!(c.constraint_type, ConstraintType::Width { value: Some(_), .. }));
+                let has_height_constraint = constraints.iter().any(|c| matches!(c.constraint_type, ConstraintType::Height { value: Some(_), .. }));
+                
+                if !has_width_constraint || !has_height_constraint {
+                    // 加载字体
+                    self.load_font(&properties.font_family)?;
+                    
+                    if let Some(font) = self.fonts.get(&properties.font_family) {
+                        let vars = self.variables.get(element.id())
+                            .ok_or_else(|| SolverError::ElementNotFound(element.id().clone()))?;
+                        
+                        if !has_width_constraint {
+                            let text_width = self.measure_text_width(content, font, properties.font_size);
+                            self.solver.add_constraint(
+                                vars.width | EQ(MEDIUM) | (text_width as f64)
+                            )?;
+                        }
+                        
+                        if !has_height_constraint {
+                            // 使用字体大小作为文本高度的近似值
+                            let text_height = properties.font_size * 1.2; // 添加一些行间距
+                            self.solver.add_constraint(
+                                vars.height | EQ(MEDIUM) | (text_height as f64)
+                            )?;
+                        }
+                    }
+                }
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+    
+    /// 测量文本宽度
+    fn measure_text_width(&self, text: &str, font: &Font<'static>, scale: f32) -> f32 {
+        let scale = Scale::uniform(scale);
+        let v_metrics = font.v_metrics(scale);
+        let glyphs: Vec<_> = font
+            .layout(text, scale, point(0.0, v_metrics.ascent))
+            .collect();
+        
+        if let (Some(first), Some(last)) = (glyphs.first(), glyphs.last()) {
+            let min_x = first.pixel_bounding_box().map(|bb| bb.min.x).unwrap_or(0) as f32;
+            let max_x = last.pixel_bounding_box().map(|bb| bb.max.x).unwrap_or(0) as f32;
+            max_x - min_x
+        } else {
+            0.0
         }
     }
     
@@ -196,6 +269,9 @@ impl LayoutSolver {
     /// 添加用户定义的约束
     fn add_user_constraints(&mut self, elements: &[Element]) -> Result<(), SolverError> {
         for element in elements {
+            // 首先添加内在尺寸约束（如果需要）
+            self.add_intrinsic_size_constraints(element)?;
+            
             for constraint in element.constraints() {
                 self.add_constraint(element.id(), constraint)?;
             }
@@ -580,7 +656,6 @@ impl LayoutSolver {
             let y = self.solver.get_value(vars.y) as f32;
             let width = self.solver.get_value(vars.width) as f32;
             let height = self.solver.get_value(vars.height) as f32;
-            
             let frame = Rect {
                 origin: Point { x, y },
                 size: Size { width, height },

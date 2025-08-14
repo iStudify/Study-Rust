@@ -1,73 +1,18 @@
 //! 自动布局渲染系统示例程序
 
 use auto_layout_render_test::*;
-use std::fs;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("🎨 Auto Layout Render Test");
     println!("==========================\n");
 
-    // 创建示例布局描述
-    create_example_layouts()?;
-
     // 测试不同的布局示例
     test_simple_layout()?;
 
+    // 测试复杂布局
     test_complex_layout()?;
 
     println!("✅ 所有测试完成！");
-    Ok(())
-}
-
-/// 创建示例布局文件
-fn create_example_layouts() -> Result<(), Box<dyn std::error::Error>> {
-    println!("📝 创建示例布局文件...");
-
-    // 创建输出目录
-    fs::create_dir_all("examples")?;
-    fs::create_dir_all("output")?;
-
-    // 简单布局示例
-    let simple_json = r##"{
-  "canvas": {
-    "width": 400,
-    "height": 300,
-    "background": "#f0f0f0"
-  },
-  "elements": [
-    {
-      "type": "text",
-      "id": "title",
-      "content": "Hello Auto Layout",
-      "properties": {
-        "font_size": 24,
-        "color": "#333333"
-      },
-      "constraints": [
-        {
-          "type": "centerX",
-          "constant": 0
-        },
-        {
-          "type": "centerY",
-          "constant": 0
-        },
-        {
-          "type": "width",
-          "value": 200
-        },
-        {
-          "type": "height",
-          "value": 30
-        }
-      ]
-    }
-  ]
-}"##;
-
-    fs::write("examples/simple.json", simple_json)?;
-
-    println!("✅ 示例文件创建完成\n");
     Ok(())
 }
 
@@ -174,18 +119,6 @@ fn test_complex_layout() -> Result<(), Box<dyn std::error::Error>> {
                             target: None,
                             offset: 0.0,
                         }),
-                        Constraint::new(ConstraintType::Width {
-                            value: Some(200.0),
-                            target: None,
-                            multiplier: 1.0,
-                            percent: None,
-                        }),
-                        Constraint::new(ConstraintType::Height {
-                            value: Some(30.0),
-                            target: None,
-                            multiplier: 1.0,
-                            percent: None,
-                        }),
                     ],
                 },
                 Element::Text {
@@ -215,18 +148,6 @@ fn test_complex_layout() -> Result<(), Box<dyn std::error::Error>> {
                         Constraint::new(ConstraintType::CenterX {
                             target: None,
                             offset: 0.0,
-                        }),
-                        Constraint::new(ConstraintType::Width {
-                            value: Some(300.0),
-                            target: None,
-                            multiplier: 1.0,
-                            percent: None,
-                        }),
-                        Constraint::new(ConstraintType::Height {
-                            value: Some(50.0),
-                            target: None,
-                            multiplier: 1.0,
-                            percent: None,
                         }),
                     ],
                 },

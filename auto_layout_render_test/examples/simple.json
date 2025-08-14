@@ -6,6 +6,32 @@
   },
   "elements": [
     {
+      "type": "image",
+      "id": "sample_image",
+      "source": "assets/sample.png",
+      "properties": {
+        "opacity": 1.0
+      },
+      "constraints": [
+        {
+          "type": "centerX",
+          "constant": 0
+        },
+        {
+          "type": "centerY",
+          "constant": 0
+        },
+        {
+          "type": "width",
+          "value": 100
+        },
+        {
+          "type": "height",
+          "value": 100
+        }
+      ]
+    },
+    {
       "type": "text",
       "id": "title",
       "content": "Hello Auto Layout",
@@ -21,14 +47,6 @@
         {
           "type": "centerY",
           "constant": 0
-        },
-        {
-          "type": "width",
-          "value": 200
-        },
-        {
-          "type": "height",
-          "value": 30
         }
       ]
     }
