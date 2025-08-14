@@ -1,0 +1,6 @@
+[package]
+name = "auto_layout_render_test"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
