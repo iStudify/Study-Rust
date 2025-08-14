@@ -7,6 +7,7 @@ use cassowary::{
 use std::collections::HashMap;
 
 use rusttype::{Font, Scale, point};
+use image::DynamicImage;
 
 #[derive(Debug)]
 pub enum SolverError {
@@ -75,6 +76,7 @@ pub struct LayoutSolver {
     variables: HashMap<ElementId, ElementVariables>,
     canvas_vars: ElementVariables,
     fonts: HashMap<String, Font<'static>>,
+    images: HashMap<String, DynamicImage>,
 }
 
 impl Default for LayoutSolver {
@@ -90,6 +92,7 @@ impl LayoutSolver {
             variables: HashMap::new(),
             canvas_vars: ElementVariables::new(),
             fonts: HashMap::new(),
+            images: HashMap::new(),
         }
     }
 
@@ -106,6 +109,20 @@ impl LayoutSolver {
         })?;
 
         self.fonts.insert(font_family.to_string(), font);
+        Ok(())
+    }
+
+    /// 加载图片
+    pub fn load_image(&mut self, image_path: &str) -> Result<(), SolverError> {
+        if self.images.contains_key(image_path) {
+            return Ok(());
+        }
+
+        let image = image::open(image_path).map_err(|e| {
+            SolverError::ConstraintError(format!("Failed to load image {}: {}", image_path, e))
+        })?;
+
+        self.images.insert(image_path.to_string(), image);
         Ok(())
     }
 
@@ -153,6 +170,48 @@ impl LayoutSolver {
                         let text_height = properties.font_size * 1.2; // 添加一些行间距
                         self.solver
                             .add_constraint(vars.height | EQ(MEDIUM) | (text_height as f64))?;
+                    }
+                }
+            }
+        } else if let Element::Image {
+                source,
+                constraints,
+                ..
+            } = element {
+            // 检查是否已有显式的宽高约束
+            let has_width_constraint = constraints.iter().any(|c| {
+                matches!(
+                    c.constraint_type,
+                    ConstraintType::Width { value: Some(_), .. }
+                )
+            });
+            let has_height_constraint = constraints.iter().any(|c| {
+                matches!(
+                    c.constraint_type,
+                    ConstraintType::Height { value: Some(_), .. }
+                )
+            });
+
+            if !has_width_constraint || !has_height_constraint {
+                // 加载图片
+                self.load_image(source)?;
+
+                if let Some(image) = self.images.get(source) {
+                    let vars = self
+                        .variables
+                        .get(element.id())
+                        .ok_or_else(|| SolverError::ElementNotFound(element.id().clone()))?;
+
+                    let (width, height) = (image.width() as f64, image.height() as f64);
+
+                    if !has_width_constraint {
+                        self.solver
+                            .add_constraint(vars.width | EQ(MEDIUM) | width)?;
+                    }
+
+                    if !has_height_constraint {
+                        self.solver
+                            .add_constraint(vars.height | EQ(MEDIUM) | height)?;
                     }
                 }
             }

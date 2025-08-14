@@ -7,7 +7,7 @@
   "elements": [
     {
       "type": "image",
-      "id": "sample_image",
+      "id": "auto_size_image",
       "source": "assets/sample.png",
       "properties": {
         "opacity": 1.0
@@ -20,21 +20,13 @@
         {
           "type": "centerY",
           "constant": 0
-        },
-        {
-          "type": "width",
-          "value": 100
-        },
-        {
-          "type": "height",
-          "value": 100
         }
       ]
     },
     {
       "type": "text",
       "id": "title",
-      "content": "Hello Auto Layout",
+      "content": "Auto Image Size Test",
       "properties": {
         "font_size": 24,
         "color": "#333333"
@@ -46,8 +38,8 @@
         },
         {
           "type": "top",
-          "target": "sample_image",
-          "constant": 0
+          "target": "auto_size_image",
+          "constant": -40
         }
       ]
     }

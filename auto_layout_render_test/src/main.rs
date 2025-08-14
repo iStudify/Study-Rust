@@ -18,13 +18,24 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 /// 测试简单布局
 fn test_simple_layout() -> Result<(), Box<dyn std::error::Error>> {
-    println!("🧪 测试简单布局...");
-
     let mut engine = AutoLayoutEngine::new();
-    let image = engine.render_from_json_file("examples/simple.json")?;
 
+    println!("🧪 测试简单布局...");
+    let image = engine.render_from_json_file("examples/simple.json")?;
     AutoLayoutEngine::save_image(&image, "output/simple.png")?;
     println!("✅ 简单布局渲染完成 -> output/simple.png\n");
+
+    // 测试图片自动尺寸功能
+    println!("🧪 测试图片自动尺寸...");
+    let image_auto = engine.render_from_json_file("examples/auto_image_size.json")?;
+    AutoLayoutEngine::save_image(&image_auto, "output/auto_image_size.png")?;
+    println!("✅ 图片自动尺寸测试完成 -> output/auto_image_size.png\n");
+
+    // 测试图片尺寸变体
+    println!("🧪 测试图片尺寸变体（完全自动、固定宽度、固定高度）...");
+    let image_variants = engine.render_from_json_file("examples/image_size_variants.json")?;
+    AutoLayoutEngine::save_image(&image_variants, "output/image_size_variants.png")?;
+    println!("✅ 图片尺寸变体测试完成 -> output/image_size_variants.png\n");
 
     Ok(())
 }
