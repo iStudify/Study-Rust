@@ -81,32 +81,26 @@ impl Padding {
 
 /// 文本对齐方式
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[derive(Default)]
 pub enum TextAlignment {
+    #[default]
     Leading,
     Center,
     Trailing,
     Justified,
 }
 
-impl Default for TextAlignment {
-    fn default() -> Self {
-        TextAlignment::Leading
-    }
-}
 
 /// 字体粗细
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[derive(Default)]
 pub enum FontWeight {
     Light,
+    #[default]
     Normal,
     Bold,
 }
 
-impl Default for FontWeight {
-    fn default() -> Self {
-        FontWeight::Normal
-    }
-}
 
 /// 换行模式
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
@@ -122,23 +116,22 @@ pub enum LineBreakMode {
 
 /// 图片缩放模式
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[derive(Default)]
 pub enum ScaleMode {
+    #[default]
     Fit,
     Fill,
     Stretch,
     Center,
 }
 
-impl Default for ScaleMode {
-    fn default() -> Self {
-        ScaleMode::Fit
-    }
-}
 
 /// 对齐方式
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[derive(Default)]
 pub enum Alignment {
     Leading,
+    #[default]
     Center,
     Trailing,
     Top,
@@ -147,15 +140,12 @@ pub enum Alignment {
     LastBaseline,
 }
 
-impl Default for Alignment {
-    fn default() -> Self {
-        Alignment::Center
-    }
-}
 
 /// 分布方式
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[derive(Default)]
 pub enum Distribution {
+    #[default]
     Fill,
     FillEqually,
     FillProportionally,
@@ -163,11 +153,6 @@ pub enum Distribution {
     EqualCentering,
 }
 
-impl Default for Distribution {
-    fn default() -> Self {
-        Distribution::Fill
-    }
-}
 
 /// 约束优先级
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Default)]

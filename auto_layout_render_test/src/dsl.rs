@@ -2,7 +2,6 @@
 
 use crate::layout::*;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
 use thiserror::Error;
@@ -174,7 +173,12 @@ pub struct DslStackProperties {
 #[serde(untagged)]
 pub enum DslPadding {
     Uniform(f32),
-    Detailed { top: f32, right: f32, bottom: f32, left: f32 },
+    Detailed {
+        top: f32,
+        right: f32,
+        bottom: f32,
+        left: f32,
+    },
 }
 
 /// DSL约束描述
@@ -224,7 +228,7 @@ pub enum DslConstraint {
         #[serde(default)]
         priority: Priority,
     },
-    
+
     // 尺寸约束
     #[serde(rename = "width")]
     Width {
@@ -244,7 +248,7 @@ pub enum DslConstraint {
         #[serde(default)]
         priority: Priority,
     },
-    
+
     // 对齐约束
     #[serde(rename = "alignTop")]
     AlignTop {
@@ -299,25 +303,25 @@ impl DslParser {
         let dsl_layout: DslLayout = serde_json::from_str(json)?;
         Self::convert_to_layout(dsl_layout)
     }
-    
+
     /// 从YAML字符串解析布局
     pub fn parse_yaml(yaml: &str) -> Result<Layout, DslError> {
         let dsl_layout: DslLayout = serde_yaml::from_str(yaml)?;
         Self::convert_to_layout(dsl_layout)
     }
-    
+
     /// 从JSON文件加载布局
     pub fn load_json_file<P: AsRef<Path>>(path: P) -> Result<Layout, DslError> {
         let content = fs::read_to_string(path)?;
         Self::parse_json(&content)
     }
-    
+
     /// 从YAML文件加载布局
     pub fn load_yaml_file<P: AsRef<Path>>(path: P) -> Result<Layout, DslError> {
         let content = fs::read_to_string(path)?;
         Self::parse_yaml(&content)
     }
-    
+
     /// 将DSL布局转换为内部布局表示
     fn convert_to_layout(dsl_layout: DslLayout) -> Result<Layout, DslError> {
         let canvas = Canvas {
@@ -326,86 +330,105 @@ impl DslParser {
             background: Self::convert_color(&dsl_layout.canvas.background)?,
             padding: Padding::all(0.0),
         };
-        
-        let elements = dsl_layout.elements
+
+        let elements = dsl_layout
+            .elements
             .into_iter()
             .map(Self::convert_element)
             .collect::<Result<Vec<_>, _>>()?;
-        
+
         Ok(Layout {
             version: "1.0".to_string(),
             canvas,
             elements,
         })
     }
-    
+
     /// 转换DSL元素为内部元素表示
     fn convert_element(dsl_element: DslElement) -> Result<Element, DslError> {
         match dsl_element {
-            DslElement::Text { id, content, properties, constraints, children: _ } => {
-                Ok(Element::Text {
-                    id,
-                    content,
-                    properties: Self::convert_text_properties(properties)?,
-                    constraints: Self::convert_constraints(constraints)?,
-                })
-            }
-            DslElement::Image { id, source, properties, constraints, children: _ } => {
-                Ok(Element::Image {
-                    id,
-                    source,
-                    properties: Self::convert_image_properties(properties)?,
-                    constraints: Self::convert_constraints(constraints)?,
-                })
-            }
-            DslElement::Container { id, properties, constraints, children } => {
-                Ok(Element::Container {
-                    id,
-                    properties: Self::convert_container_properties(properties)?,
-                    constraints: Self::convert_constraints(constraints)?,
-                    children: Self::convert_children(children)?,
-                })
-            }
-            DslElement::VStack { id, properties, constraints, children } => {
-                Ok(Element::VStack {
-                    id,
-                    properties: Self::convert_stack_properties(properties)?,
-                    constraints: Self::convert_constraints(constraints)?,
-                    children: Self::convert_children(children)?,
-                })
-            }
-            DslElement::HStack { id, properties, constraints, children } => {
-                Ok(Element::HStack {
-                    id,
-                    properties: Self::convert_stack_properties(properties)?,
-                    constraints: Self::convert_constraints(constraints)?,
-                    children: Self::convert_children(children)?,
-                })
-            }
-            DslElement::ZStack { id, properties, constraints, children } => {
-                Ok(Element::ZStack {
-                    id,
-                    properties: Self::convert_stack_properties(properties)?,
-                    constraints: Self::convert_constraints(constraints)?,
-                    children: Self::convert_children(children)?,
-                })
-            }
-            DslElement::Spacer { id, constraints } => {
-                Ok(Element::Spacer {
-                    id,
-                    min_length: 0.0,
-                    priority: Priority::Low,
-                    constraints: Self::convert_constraints(constraints)?,
-                })
-            }
+            DslElement::Text {
+                id,
+                content,
+                properties,
+                constraints,
+                children: _,
+            } => Ok(Element::Text {
+                id,
+                content,
+                properties: Self::convert_text_properties(properties)?,
+                constraints: Self::convert_constraints(constraints)?,
+            }),
+            DslElement::Image {
+                id,
+                source,
+                properties,
+                constraints,
+                children: _,
+            } => Ok(Element::Image {
+                id,
+                source,
+                properties: Self::convert_image_properties(properties)?,
+                constraints: Self::convert_constraints(constraints)?,
+            }),
+            DslElement::Container {
+                id,
+                properties,
+                constraints,
+                children,
+            } => Ok(Element::Container {
+                id,
+                properties: Self::convert_container_properties(properties)?,
+                constraints: Self::convert_constraints(constraints)?,
+                children: Self::convert_children(children)?,
+            }),
+            DslElement::VStack {
+                id,
+                properties,
+                constraints,
+                children,
+            } => Ok(Element::VStack {
+                id,
+                properties: Self::convert_stack_properties(properties)?,
+                constraints: Self::convert_constraints(constraints)?,
+                children: Self::convert_children(children)?,
+            }),
+            DslElement::HStack {
+                id,
+                properties,
+                constraints,
+                children,
+            } => Ok(Element::HStack {
+                id,
+                properties: Self::convert_stack_properties(properties)?,
+                constraints: Self::convert_constraints(constraints)?,
+                children: Self::convert_children(children)?,
+            }),
+            DslElement::ZStack {
+                id,
+                properties,
+                constraints,
+                children,
+            } => Ok(Element::ZStack {
+                id,
+                properties: Self::convert_stack_properties(properties)?,
+                constraints: Self::convert_constraints(constraints)?,
+                children: Self::convert_children(children)?,
+            }),
+            DslElement::Spacer { id, constraints } => Ok(Element::Spacer {
+                id,
+                min_length: 0.0,
+                priority: Priority::Low,
+                constraints: Self::convert_constraints(constraints)?,
+            }),
         }
     }
-    
+
     /// 转换子元素列表
     fn convert_children(children: Vec<DslElement>) -> Result<Vec<Element>, DslError> {
         children.into_iter().map(Self::convert_element).collect()
     }
-    
+
     /// 转换文本属性
     fn convert_text_properties(props: DslTextProperties) -> Result<TextProperties, DslError> {
         Ok(TextProperties {
@@ -420,20 +443,25 @@ impl DslParser {
             line_break_mode: LineBreakMode::WordWrap,
         })
     }
-    
+
     /// 转换图片属性
     fn convert_image_properties(props: DslImageProperties) -> Result<ImageProperties, DslError> {
         Ok(ImageProperties {
             scale_mode: props.scale_mode,
             aspect_ratio: None,
             opacity: props.opacity,
-            tint_color: props.tint_color.map(|c| Self::convert_color(&c)).transpose()?,
+            tint_color: props
+                .tint_color
+                .map(|c| Self::convert_color(&c))
+                .transpose()?,
             corner_radius: props.corner_radius,
         })
     }
-    
+
     /// 转换容器属性
-    fn convert_container_properties(props: DslContainerProperties) -> Result<ContainerProperties, DslError> {
+    fn convert_container_properties(
+        props: DslContainerProperties,
+    ) -> Result<ContainerProperties, DslError> {
         Ok(ContainerProperties {
             background: Self::convert_color(&props.background)?,
             border_color: Self::convert_color(&props.border_color)?,
@@ -443,7 +471,7 @@ impl DslParser {
             padding: Self::convert_padding(props.padding),
         })
     }
-    
+
     /// 转换堆叠属性
     fn convert_stack_properties(props: DslStackProperties) -> Result<StackProperties, DslError> {
         Ok(StackProperties {
@@ -452,47 +480,110 @@ impl DslParser {
             distribution: props.distribution,
         })
     }
-    
+
     /// 转换约束列表
     fn convert_constraints(constraints: Vec<DslConstraint>) -> Result<Vec<Constraint>, DslError> {
-        constraints.into_iter().map(Self::convert_constraint).collect()
+        constraints
+            .into_iter()
+            .map(Self::convert_constraint)
+            .collect()
     }
-    
+
     /// 转换单个约束
     fn convert_constraint(constraint: DslConstraint) -> Result<Constraint, DslError> {
         let (constraint_type, priority) = match constraint {
-            DslConstraint::Top { target, constant, priority } => {
-                (ConstraintType::Top { target, value: constant }, priority)
-            }
-            DslConstraint::Bottom { target, constant, priority } => {
-                (ConstraintType::Bottom { target, value: constant }, priority)
-            }
-            DslConstraint::Leading { target, constant, priority } => {
-                (ConstraintType::Leading { target, value: constant }, priority)
-            }
-            DslConstraint::Trailing { target, constant, priority } => {
-                (ConstraintType::Trailing { target, value: constant }, priority)
-            }
-            DslConstraint::CenterX { target, constant, priority } => {
-                (ConstraintType::CenterX { target, offset: constant }, priority)
-            }
-            DslConstraint::CenterY { target, constant, priority } => {
-                (ConstraintType::CenterY { target, offset: constant }, priority)
-            }
+            DslConstraint::Top {
+                target,
+                constant,
+                priority,
+            } => (
+                ConstraintType::Top {
+                    target,
+                    value: constant,
+                },
+                priority,
+            ),
+            DslConstraint::Bottom {
+                target,
+                constant,
+                priority,
+            } => (
+                ConstraintType::Bottom {
+                    target,
+                    value: constant,
+                },
+                priority,
+            ),
+            DslConstraint::Leading {
+                target,
+                constant,
+                priority,
+            } => (
+                ConstraintType::Leading {
+                    target,
+                    value: constant,
+                },
+                priority,
+            ),
+            DslConstraint::Trailing {
+                target,
+                constant,
+                priority,
+            } => (
+                ConstraintType::Trailing {
+                    target,
+                    value: constant,
+                },
+                priority,
+            ),
+            DslConstraint::CenterX {
+                target,
+                constant,
+                priority,
+            } => (
+                ConstraintType::CenterX {
+                    target,
+                    offset: constant,
+                },
+                priority,
+            ),
+            DslConstraint::CenterY {
+                target,
+                constant,
+                priority,
+            } => (
+                ConstraintType::CenterY {
+                    target,
+                    offset: constant,
+                },
+                priority,
+            ),
             DslConstraint::Width { value, priority } => {
                 let size_constraint = Self::convert_size_constraint(value)?;
                 let constraint_type = match size_constraint {
-                    SizeConstraint::Fixed(val) => ConstraintType::Width { 
-                        value: Some(val), target: None, multiplier: 1.0, percent: None 
+                    SizeConstraint::Fixed(val) => ConstraintType::Width {
+                        value: Some(val),
+                        target: None,
+                        multiplier: 1.0,
+                        percent: None,
                     },
-                    SizeConstraint::Percentage(pct) => ConstraintType::Width { 
-                        value: None, target: None, multiplier: 1.0, percent: Some(pct) 
+                    SizeConstraint::Percentage(pct) => ConstraintType::Width {
+                        value: None,
+                        target: None,
+                        multiplier: 1.0,
+                        percent: Some(pct),
                     },
-                    SizeConstraint::Relative { target, multiplier } => ConstraintType::Width { 
-                        value: None, target: Some(target), multiplier, percent: None 
+                    SizeConstraint::Relative { target, multiplier } => ConstraintType::Width {
+                        value: None,
+                        target: Some(target),
+                        multiplier,
+                        percent: None,
                     },
-                    SizeConstraint::Auto => ConstraintType::Width { 
-                        value: None, target: None, multiplier: 1.0, percent: None 
+                    SizeConstraint::Auto => ConstraintType::Width {
+                        value: None,
+                        target: None,
+                        multiplier: 1.0,
+                        percent: None,
                     },
                 };
                 (constraint_type, priority)
@@ -500,17 +591,29 @@ impl DslParser {
             DslConstraint::Height { value, priority } => {
                 let size_constraint = Self::convert_size_constraint(value)?;
                 let constraint_type = match size_constraint {
-                    SizeConstraint::Fixed(val) => ConstraintType::Height { 
-                        value: Some(val), target: None, multiplier: 1.0, percent: None 
+                    SizeConstraint::Fixed(val) => ConstraintType::Height {
+                        value: Some(val),
+                        target: None,
+                        multiplier: 1.0,
+                        percent: None,
                     },
-                    SizeConstraint::Percentage(pct) => ConstraintType::Height { 
-                        value: None, target: None, multiplier: 1.0, percent: Some(pct) 
+                    SizeConstraint::Percentage(pct) => ConstraintType::Height {
+                        value: None,
+                        target: None,
+                        multiplier: 1.0,
+                        percent: Some(pct),
                     },
-                    SizeConstraint::Relative { target, multiplier } => ConstraintType::Height { 
-                        value: None, target: Some(target), multiplier, percent: None 
+                    SizeConstraint::Relative { target, multiplier } => ConstraintType::Height {
+                        value: None,
+                        target: Some(target),
+                        multiplier,
+                        percent: None,
                     },
-                    SizeConstraint::Auto => ConstraintType::Height { 
-                        value: None, target: None, multiplier: 1.0, percent: None 
+                    SizeConstraint::Auto => ConstraintType::Height {
+                        value: None,
+                        target: None,
+                        multiplier: 1.0,
+                        percent: None,
                     },
                 };
                 (constraint_type, priority)
@@ -518,32 +621,56 @@ impl DslParser {
             DslConstraint::AspectRatio { ratio, priority } => {
                 (ConstraintType::AspectRatio { ratio }, priority)
             }
-            DslConstraint::AlignTop { target, constant, priority } => {
-                (ConstraintType::AlignTop { target }, priority)
-            }
-            DslConstraint::AlignBottom { target, constant, priority } => {
-                (ConstraintType::AlignBottom { target }, priority)
-            }
-            DslConstraint::AlignLeading { target, constant, priority } => {
-                (ConstraintType::AlignLeading { target }, priority)
-            }
-            DslConstraint::AlignTrailing { target, constant, priority } => {
-                (ConstraintType::AlignTrailing { target }, priority)
-            }
-            DslConstraint::AlignCenterX { target, constant, priority } => {
-                (ConstraintType::CenterX { target: Some(target), offset: constant }, priority)
-            }
-            DslConstraint::AlignCenterY { target, constant, priority } => {
-                (ConstraintType::CenterY { target: Some(target), offset: constant }, priority)
-            }
+            DslConstraint::AlignTop {
+                target,
+                constant: _,
+                priority,
+            } => (ConstraintType::AlignTop { target }, priority),
+            DslConstraint::AlignBottom {
+                target,
+                constant: _,
+                priority,
+            } => (ConstraintType::AlignBottom { target }, priority),
+            DslConstraint::AlignLeading {
+                target,
+                constant: _,
+                priority,
+            } => (ConstraintType::AlignLeading { target }, priority),
+            DslConstraint::AlignTrailing {
+                target,
+                constant: _,
+                priority,
+            } => (ConstraintType::AlignTrailing { target }, priority),
+            DslConstraint::AlignCenterX {
+                target,
+                constant,
+                priority,
+            } => (
+                ConstraintType::CenterX {
+                    target: Some(target),
+                    offset: constant,
+                },
+                priority,
+            ),
+            DslConstraint::AlignCenterY {
+                target,
+                constant,
+                priority,
+            } => (
+                ConstraintType::CenterY {
+                    target: Some(target),
+                    offset: constant,
+                },
+                priority,
+            ),
         };
-        
+
         Ok(Constraint {
             constraint_type,
             priority,
         })
     }
-    
+
     /// 转换尺寸约束
     fn convert_size_constraint(size: DslSize) -> Result<SizeConstraint, DslError> {
         match size {
@@ -555,89 +682,170 @@ impl DslParser {
                         return Ok(SizeConstraint::Percentage(value / 100.0));
                     }
                 }
-                Err(DslError::ValidationError(format!("Invalid percentage format: {}", percent_str)))
+                Err(DslError::ValidationError(format!(
+                    "Invalid percentage format: {}",
+                    percent_str
+                )))
             }
         }
     }
-    
+
     /// 转换颜色
     fn convert_color(color: &DslColor) -> Result<Color, DslError> {
         match color {
-            DslColor::Rgba { r, g, b, a } => {
-                Ok(Color { r: *r, g: *g, b: *b, a: *a })
-            }
-            DslColor::Rgb { r, g, b } => {
-                Ok(Color { r: *r, g: *g, b: *b, a: 255 })
-            }
-            DslColor::Hex(hex_str) => {
-                Self::parse_hex_color(hex_str)
-            }
-            DslColor::Named(name) => {
-                Self::parse_named_color(name)
-            }
+            DslColor::Rgba { r, g, b, a } => Ok(Color {
+                r: *r,
+                g: *g,
+                b: *b,
+                a: *a,
+            }),
+            DslColor::Rgb { r, g, b } => Ok(Color {
+                r: *r,
+                g: *g,
+                b: *b,
+                a: 255,
+            }),
+            DslColor::Hex(hex_str) => Self::parse_hex_color(hex_str),
+            DslColor::Named(name) => Self::parse_named_color(name),
         }
     }
-    
+
     /// 解析十六进制颜色
     fn parse_hex_color(hex: &str) -> Result<Color, DslError> {
         let hex = hex.trim_start_matches('#');
-        
+
         match hex.len() {
             3 => {
                 // #RGB -> #RRGGBB
-                let r = u8::from_str_radix(&hex[0..1].repeat(2), 16)
-                    .map_err(|_| DslError::ValidationError(format!("Invalid hex color: #{}", hex)))?;
-                let g = u8::from_str_radix(&hex[1..2].repeat(2), 16)
-                    .map_err(|_| DslError::ValidationError(format!("Invalid hex color: #{}", hex)))?;
-                let b = u8::from_str_radix(&hex[2..3].repeat(2), 16)
-                    .map_err(|_| DslError::ValidationError(format!("Invalid hex color: #{}", hex)))?;
+                let r = u8::from_str_radix(&hex[0..1].repeat(2), 16).map_err(|_| {
+                    DslError::ValidationError(format!("Invalid hex color: #{}", hex))
+                })?;
+                let g = u8::from_str_radix(&hex[1..2].repeat(2), 16).map_err(|_| {
+                    DslError::ValidationError(format!("Invalid hex color: #{}", hex))
+                })?;
+                let b = u8::from_str_radix(&hex[2..3].repeat(2), 16).map_err(|_| {
+                    DslError::ValidationError(format!("Invalid hex color: #{}", hex))
+                })?;
                 Ok(Color { r, g, b, a: 255 })
             }
             6 => {
                 // #RRGGBB
-                let r = u8::from_str_radix(&hex[0..2], 16)
-                    .map_err(|_| DslError::ValidationError(format!("Invalid hex color: #{}", hex)))?;
-                let g = u8::from_str_radix(&hex[2..4], 16)
-                    .map_err(|_| DslError::ValidationError(format!("Invalid hex color: #{}", hex)))?;
-                let b = u8::from_str_radix(&hex[4..6], 16)
-                    .map_err(|_| DslError::ValidationError(format!("Invalid hex color: #{}", hex)))?;
+                let r = u8::from_str_radix(&hex[0..2], 16).map_err(|_| {
+                    DslError::ValidationError(format!("Invalid hex color: #{}", hex))
+                })?;
+                let g = u8::from_str_radix(&hex[2..4], 16).map_err(|_| {
+                    DslError::ValidationError(format!("Invalid hex color: #{}", hex))
+                })?;
+                let b = u8::from_str_radix(&hex[4..6], 16).map_err(|_| {
+                    DslError::ValidationError(format!("Invalid hex color: #{}", hex))
+                })?;
                 Ok(Color { r, g, b, a: 255 })
             }
             8 => {
                 // #RRGGBBAA
-                let r = u8::from_str_radix(&hex[0..2], 16)
-                    .map_err(|_| DslError::ValidationError(format!("Invalid hex color: #{}", hex)))?;
-                let g = u8::from_str_radix(&hex[2..4], 16)
-                    .map_err(|_| DslError::ValidationError(format!("Invalid hex color: #{}", hex)))?;
-                let b = u8::from_str_radix(&hex[4..6], 16)
-                    .map_err(|_| DslError::ValidationError(format!("Invalid hex color: #{}", hex)))?;
-                let a = u8::from_str_radix(&hex[6..8], 16)
-                    .map_err(|_| DslError::ValidationError(format!("Invalid hex color: #{}", hex)))?;
+                let r = u8::from_str_radix(&hex[0..2], 16).map_err(|_| {
+                    DslError::ValidationError(format!("Invalid hex color: #{}", hex))
+                })?;
+                let g = u8::from_str_radix(&hex[2..4], 16).map_err(|_| {
+                    DslError::ValidationError(format!("Invalid hex color: #{}", hex))
+                })?;
+                let b = u8::from_str_radix(&hex[4..6], 16).map_err(|_| {
+                    DslError::ValidationError(format!("Invalid hex color: #{}", hex))
+                })?;
+                let a = u8::from_str_radix(&hex[6..8], 16).map_err(|_| {
+                    DslError::ValidationError(format!("Invalid hex color: #{}", hex))
+                })?;
                 Ok(Color { r, g, b, a })
             }
-            _ => Err(DslError::ValidationError(format!("Invalid hex color format: #{}", hex)))
+            _ => Err(DslError::ValidationError(format!(
+                "Invalid hex color format: #{}",
+                hex
+            ))),
         }
     }
-    
+
     /// 解析命名颜色
     fn parse_named_color(name: &str) -> Result<Color, DslError> {
         match name.to_lowercase().as_str() {
-            "transparent" => Ok(Color { r: 0, g: 0, b: 0, a: 0 }),
-            "black" => Ok(Color { r: 0, g: 0, b: 0, a: 255 }),
-            "white" => Ok(Color { r: 255, g: 255, b: 255, a: 255 }),
-            "red" => Ok(Color { r: 255, g: 0, b: 0, a: 255 }),
-            "green" => Ok(Color { r: 0, g: 255, b: 0, a: 255 }),
-            "blue" => Ok(Color { r: 0, g: 0, b: 255, a: 255 }),
-            "yellow" => Ok(Color { r: 255, g: 255, b: 0, a: 255 }),
-            "cyan" => Ok(Color { r: 0, g: 255, b: 255, a: 255 }),
-            "magenta" => Ok(Color { r: 255, g: 0, b: 255, a: 255 }),
-            "gray" | "grey" => Ok(Color { r: 128, g: 128, b: 128, a: 255 }),
-            "lightgray" | "lightgrey" => Ok(Color { r: 211, g: 211, b: 211, a: 255 }),
-            "darkgray" | "darkgrey" => Ok(Color { r: 169, g: 169, b: 169, a: 255 }),
-            _ => Err(DslError::ValidationError(format!("Unknown color name: {}", name)))
+            "transparent" => Ok(Color {
+                r: 0,
+                g: 0,
+                b: 0,
+                a: 0,
+            }),
+            "black" => Ok(Color {
+                r: 0,
+                g: 0,
+                b: 0,
+                a: 255,
+            }),
+            "white" => Ok(Color {
+                r: 255,
+                g: 255,
+                b: 255,
+                a: 255,
+            }),
+            "red" => Ok(Color {
+                r: 255,
+                g: 0,
+                b: 0,
+                a: 255,
+            }),
+            "green" => Ok(Color {
+                r: 0,
+                g: 255,
+                b: 0,
+                a: 255,
+            }),
+            "blue" => Ok(Color {
+                r: 0,
+                g: 0,
+                b: 255,
+                a: 255,
+            }),
+            "yellow" => Ok(Color {
+                r: 255,
+                g: 255,
+                b: 0,
+                a: 255,
+            }),
+            "cyan" => Ok(Color {
+                r: 0,
+                g: 255,
+                b: 255,
+                a: 255,
+            }),
+            "magenta" => Ok(Color {
+                r: 255,
+                g: 0,
+                b: 255,
+                a: 255,
+            }),
+            "gray" | "grey" => Ok(Color {
+                r: 128,
+                g: 128,
+                b: 128,
+                a: 255,
+            }),
+            "lightgray" | "lightgrey" => Ok(Color {
+                r: 211,
+                g: 211,
+                b: 211,
+                a: 255,
+            }),
+            "darkgray" | "darkgrey" => Ok(Color {
+                r: 169,
+                g: 169,
+                b: 169,
+                a: 255,
+            }),
+            _ => Err(DslError::ValidationError(format!(
+                "Unknown color name: {}",
+                name
+            ))),
         }
     }
-    
+
     /// 转换内边距
     fn convert_padding(padding: DslPadding) -> Padding {
         match padding {
@@ -647,7 +855,12 @@ impl DslParser {
                 bottom: value,
                 left: value,
             },
-            DslPadding::Detailed { top, right, bottom, left } => Padding {
+            DslPadding::Detailed {
+                top,
+                right,
+                bottom,
+                left,
+            } => Padding {
                 top,
                 right,
                 bottom,

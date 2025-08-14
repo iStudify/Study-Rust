@@ -49,12 +49,6 @@ impl RenderContext {
         Ok(())
     }
 
-    /// 创建占位符字体数据
-    fn create_placeholder_font_data(&self) -> Vec<u8> {
-        // 返回空向量，跳过字体加载
-        vec![]
-    }
-
     /// 加载图片
     fn load_image(&mut self, source: &str) -> Result<(), RenderError> {
         if self.images.contains_key(source) {
@@ -84,6 +78,12 @@ impl RenderContext {
 /// 渲染引擎
 pub struct Renderer {
     context: RenderContext,
+}
+
+impl Default for Renderer {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl Renderer {
@@ -485,19 +485,6 @@ fn alpha_blend(background: Rgba<u8>, foreground: Rgba<u8>) -> Rgba<u8> {
     let b =
         ((fg[2] as f32 * alpha_fg + bg[2] as f32 * alpha_bg * (1.0 - alpha_fg)) / alpha_out) as u8;
     let a = (alpha_out * 255.0) as u8;
-
-    Rgba([r, g, b, a])
-}
-
-/// 颜色混合（用于文本渲染）
-fn blend_colors(background: Rgba<u8>, foreground: Rgba<u8>, alpha: u8) -> Rgba<u8> {
-    let alpha_f = alpha as f32 / 255.0;
-    let inv_alpha = 1.0 - alpha_f;
-
-    let r = (foreground.0[0] as f32 * alpha_f + background.0[0] as f32 * inv_alpha) as u8;
-    let g = (foreground.0[1] as f32 * alpha_f + background.0[1] as f32 * inv_alpha) as u8;
-    let b = (foreground.0[2] as f32 * alpha_f + background.0[2] as f32 * inv_alpha) as u8;
-    let a = (foreground.0[3] as f32 * alpha_f + background.0[3] as f32 * inv_alpha) as u8;
 
     Rgba([r, g, b, a])
 }
