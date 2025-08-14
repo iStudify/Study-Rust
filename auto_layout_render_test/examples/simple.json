@@ -1,0 +1,36 @@
+{
+  "canvas": {
+    "width": 400,
+    "height": 300,
+    "background": "#f0f0f0"
+  },
+  "elements": [
+    {
+      "type": "text",
+      "id": "title",
+      "content": "Hello Auto Layout",
+      "properties": {
+        "font_size": 24,
+        "color": "#333333"
+      },
+      "constraints": [
+        {
+          "type": "centerX",
+          "constant": 0
+        },
+        {
+          "type": "centerY",
+          "constant": 0
+        },
+        {
+          "type": "width",
+          "value": 200
+        },
+        {
+          "type": "height",
+          "value": 30
+        }
+      ]
+    }
+  ]
+}
