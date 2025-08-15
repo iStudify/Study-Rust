@@ -12,7 +12,41 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // 测试复杂布局
     test_complex_layout()?;
 
+    // 测试Debug模式
+    test_debug_mode()?;
+
     println!("✅ 所有测试完成！");
+    Ok(())
+}
+
+/// 测试Debug模式
+fn test_debug_mode() -> Result<(), Box<dyn std::error::Error>> {
+    println!("🧪 测试Debug模式（显示元素边界框）...");
+
+    let mut engine = AutoLayoutEngine::new();
+
+    // 启用debug模式
+    engine.set_debug(true);
+
+    // 使用专门的debug演示文件
+    let image_debug = engine.render_from_json_file("examples/debug_demo.json")?;
+    AutoLayoutEngine::save_image(&image_debug, "output/debug_demo.png")?;
+    println!("✅ Debug模式演示完成 -> output/debug_demo.png");
+
+    // 也测试图片尺寸变体的debug效果
+    let image_variants_debug = engine.render_from_json_file("examples/image_size_variants.json")?;
+    AutoLayoutEngine::save_image(&image_variants_debug, "output/debug_image_variants.png")?;
+    println!("✅ Debug模式（图片变体）完成 -> output/debug_image_variants.png");
+
+    println!("   🎨 Debug边框颜色说明：");
+    println!("   🔴 红色边框：文本元素");
+    println!("   🟢 绿色边框：图片元素");
+    println!("   🔵 蓝色边框：容器元素");
+    println!("   🟡 黄色边框：垂直堆叠");
+    println!("   🟣 紫色边框：水平堆叠");
+    println!("   🔵 青色边框：层叠");
+    println!("   ⚪ 灰色边框：间隔器\n");
+
     Ok(())
 }
 

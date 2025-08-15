@@ -35,6 +35,11 @@ impl AutoLayoutEngine {
         }
     }
 
+    /// 设置debug模式
+    pub fn set_debug(&mut self, debug: bool) {
+        self.renderer.set_debug(debug);
+    }
+
     /// 从布局描述渲染图像
     pub fn render_layout(&mut self, layout: &Layout) -> Result<RgbaImage, AutoLayoutError> {
         // 1. 解析约束并计算布局

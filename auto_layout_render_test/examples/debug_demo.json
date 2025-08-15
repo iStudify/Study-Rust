@@ -1,0 +1,229 @@
+{
+  "version": "1.0",
+  "canvas": {
+    "width": 400,
+    "height": 300,
+    "background": {
+      "r": 255,
+      "g": 255,
+      "b": 255,
+      "a": 255
+    },
+    "padding": {
+      "top": 20,
+      "right": 20,
+      "bottom": 20,
+      "left": 20
+    }
+  },
+  "elements": [
+    {
+      "type": "container",
+      "id": "main_container",
+      "properties": {
+        "background": {
+          "r": 240,
+          "g": 240,
+          "b": 240,
+          "a": 255
+        },
+        "border_color": {
+          "r": 200,
+          "g": 200,
+          "b": 200,
+          "a": 255
+        },
+        "border_width": 1,
+        "corner_radius": 8,
+        "padding": {
+          "top": 15,
+          "right": 15,
+          "bottom": 15,
+          "left": 15
+        }
+      },
+      "constraints": [
+        {
+          "type": "top",
+          "constant": 0
+        },
+        {
+          "type": "leading",
+          "constant": 0
+        },
+        {
+          "type": "trailing",
+          "constant": 0
+        },
+        {
+          "type": "height",
+          "value": 120
+        }
+      ],
+      "children": [
+        {
+          "type": "text",
+          "id": "title",
+          "content": "Debug模式演示",
+          "properties": {
+            "font_family": "Arial",
+            "font_size": 24,
+            "font_weight": "Bold",
+            "color": {
+              "r": 51,
+              "g": 51,
+              "b": 51,
+              "a": 255
+            },
+            "alignment": "Center"
+          },
+          "constraints": [
+            {
+              "type": "top",
+              "constant": 0
+            },
+            {
+              "type": "centerX",
+              "constant": 0
+            }
+          ]
+        },
+        {
+          "type": "hstack",
+          "id": "content_stack",
+          "properties": {
+            "spacing": 16,
+            "alignment": "Center"
+          },
+          "constraints": [
+            {
+              "type": "top",
+              "target": "title",
+              "constant": 20
+            },
+            {
+              "type": "centerX",
+              "constant": 0
+            }
+          ],
+          "children": [
+            {
+              "type": "image",
+              "id": "demo_image",
+              "source": "assets/sample.png",
+              "properties": {
+                "scale_mode": "Fit"
+              },
+              "constraints": [
+                {
+                  "type": "width",
+                  "value": 40
+                },
+                {
+                  "type": "height",
+                  "value": 40
+                }
+              ]
+            },
+            {
+              "type": "vstack",
+              "id": "text_stack",
+              "properties": {
+                "spacing": 8,
+                "alignment": "Leading"
+              },
+              "constraints": [],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "desc1",
+                  "content": "红色边框：文本元素。",
+                  "properties": {
+                    "font_family": "Arial",
+                    "font_size": 16,
+                    "color": {
+                      "r": 102,
+                      "g": 102,
+                      "b": 102,
+                      "a": 255
+                    }
+                  },
+                  "constraints": []
+                },
+                {
+                  "type": "text",
+                  "id": "desc2",
+                  "content": "绿色边框：图片元素",
+                  "properties": {
+                    "font_family": "Arial",
+                    "font_size": 16,
+                    "color": {
+                      "r": 102,
+                      "g": 102,
+                      "b": 102,
+                      "a": 255
+                    }
+                  },
+                  "constraints": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "test_abc",
+          "content": "这是一个测试文本",
+          "properties": {
+            "font_family": "Arial",
+            "font_size": 16,
+            "color": {
+              "r": 102,
+              "g": 102,
+              "b": 102,
+              "a": 255
+            }
+          },
+          "constraints": [
+            {
+              "type": "top",
+              "target": "content_stack",
+              "constant": 0
+            },
+            {
+              "type": "centerX",
+              "constant": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "id": "footer",
+      "content": "蓝色边框：容器 | 黄色边框：垂直堆叠 | 紫色边框：水平堆叠",
+      "properties": {
+        "font_family": "Arial",
+        "font_size": 16,
+        "color": {
+          "r": 128,
+          "g": 128,
+          "b": 128,
+          "a": 255
+        },
+        "alignment": "Center"
+      },
+      "constraints": [
+        {
+          "type": "top",
+          "target": "main_container",
+          "constant": 20
+        },
+        {
+          "type": "centerX",
+          "constant": 0
+        }
+      ]
+    }
+  ]
+}

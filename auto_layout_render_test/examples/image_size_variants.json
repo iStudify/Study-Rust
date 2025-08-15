@@ -84,7 +84,7 @@
         },
         {
           "type": "bottom",
-          "constant": -20
+          "constant": 0
         }
       ]
     },

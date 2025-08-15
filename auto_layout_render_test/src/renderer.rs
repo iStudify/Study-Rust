@@ -40,12 +40,16 @@ impl RenderContext {
         }
 
         // 使用默认的 DejaVu Sans 字体
-        let font_data = include_bytes!("../assets/fonts/DejaVuSans.ttf");
-        let font = Font::try_from_bytes(font_data as &[u8])
-            .ok_or_else(|| RenderError::FontError("Failed to load DejaVu Sans font".to_string()))?;
+        let font_data = include_bytes!("../assets/fonts/SourceHanSansSC-Regular.otf");
+        let font = Font::try_from_bytes(font_data as &[u8]).ok_or_else(|| {
+            RenderError::FontError("Failed to load SourceHanSansSC-Regular font".to_string())
+        })?;
 
         self.fonts.insert(font_family.to_string(), font);
-        println!("✅ 成功加载字体: {} (使用 DejaVu Sans)", font_family);
+        println!(
+            "✅ 成功加载字体: {} (使用 SourceHanSansSC-Regular)",
+            font_family
+        );
         Ok(())
     }
 
@@ -78,6 +82,7 @@ impl RenderContext {
 /// 渲染引擎
 pub struct Renderer {
     context: RenderContext,
+    debug: bool,
 }
 
 impl Default for Renderer {
@@ -90,7 +95,21 @@ impl Renderer {
     pub fn new() -> Self {
         Self {
             context: RenderContext::new(),
+            debug: false,
         }
+    }
+
+    /// 创建带debug模式的渲染器
+    pub fn new_with_debug(debug: bool) -> Self {
+        Self {
+            context: RenderContext::new(),
+            debug,
+        }
+    }
+
+    /// 设置debug模式
+    pub fn set_debug(&mut self, debug: bool) {
+        self.debug = debug;
     }
 
     /// 渲染布局到图像
@@ -191,6 +210,19 @@ impl Renderer {
             Element::Spacer { .. } => {
                 // Spacer不需要渲染
             }
+        }
+
+        // Debug模式：绘制元素边界框
+        if self.debug {
+            // 添加调试输出显示堆叠容器的frame信息
+            match element {
+                Element::VStack { id, .. } | Element::HStack { id, .. } | Element::ZStack { id, .. } => {
+                    println!("🔍 Debug: {} frame = ({}, {}) 尺寸 {}x{}", 
+                        id, frame.origin.x, frame.origin.y, frame.size.width, frame.size.height);
+                }
+                _ => {}
+            }
+            self.draw_debug_frame(frame, image, element);
         }
 
         Ok(())
@@ -381,30 +413,55 @@ impl Renderer {
         // 上边框
         for y in y1..y1.saturating_add(border_width).min(image.height()) {
             for x in x1..x2.min(image.width()) {
-                image.put_pixel(x, y, color);
+                let background = *image.get_pixel(x, y);
+                let blended = alpha_blend(background, color);
+                image.put_pixel(x, y, blended);
             }
         }
 
         // 下边框
         for y in y2.saturating_sub(border_width)..y2.min(image.height()) {
             for x in x1..x2.min(image.width()) {
-                image.put_pixel(x, y, color);
+                let background = *image.get_pixel(x, y);
+                let blended = alpha_blend(background, color);
+                image.put_pixel(x, y, blended);
             }
         }
 
         // 左边框
         for x in x1..x1.saturating_add(border_width).min(image.width()) {
             for y in y1..y2.min(image.height()) {
-                image.put_pixel(x, y, color);
+                let background = *image.get_pixel(x, y);
+                let blended = alpha_blend(background, color);
+                image.put_pixel(x, y, blended);
             }
         }
 
         // 右边框
         for x in x2.saturating_sub(border_width)..x2.min(image.width()) {
             for y in y1..y2.min(image.height()) {
-                image.put_pixel(x, y, color);
+                let background = *image.get_pixel(x, y);
+                let blended = alpha_blend(background, color);
+                image.put_pixel(x, y, blended);
             }
         }
+    }
+
+    /// Debug模式：绘制元素边界框
+    fn draw_debug_frame(&self, frame: &Rect, image: &mut RgbaImage, element: &Element) {
+        // 根据元素类型选择不同颜色的边框（增加透明度以便区分重叠边界）
+        let debug_color = match element {
+            Element::Text { .. } => Rgba([255, 0, 0, 180]), // 红色：文本元素
+            Element::Image { .. } => Rgba([0, 255, 0, 180]), // 绿色：图片元素
+            Element::Container { .. } => Rgba([0, 0, 255, 180]), // 蓝色：容器元素
+            Element::VStack { .. } => Rgba([255, 255, 0, 180]), // 黄色：垂直堆叠
+            Element::HStack { .. } => Rgba([255, 0, 255, 180]), // 紫色：水平堆叠
+            Element::ZStack { .. } => Rgba([0, 255, 255, 180]), // 青色：层叠
+            Element::Spacer { .. } => Rgba([128, 128, 128, 180]), // 灰色：间隔器
+        };
+
+        // 绘制1像素宽的边框
+        self.draw_border(image, frame, 1.0, debug_color);
     }
 
     /// 测量文本宽度

@@ -6,8 +6,8 @@ use cassowary::{
 };
 use std::collections::HashMap;
 
-use rusttype::{Font, Scale, point};
 use image::DynamicImage;
+use rusttype::{Font, Scale, point};
 
 #[derive(Debug)]
 pub enum SolverError {
@@ -103,9 +103,9 @@ impl LayoutSolver {
         }
 
         // 使用默认的 DejaVu Sans 字体
-        let font_data = include_bytes!("../assets/fonts/DejaVuSans.ttf");
+        let font_data = include_bytes!("../assets/fonts/SourceHanSansSC-Regular.otf");
         let font = Font::try_from_bytes(font_data as &[u8]).ok_or_else(|| {
-            SolverError::ConstraintError("Failed to load DejaVu Sans font".to_string())
+            SolverError::ConstraintError("Failed to load SourceHanSansSC-Regular font".to_string())
         })?;
 
         self.fonts.insert(font_family.to_string(), font);
@@ -129,11 +129,12 @@ impl LayoutSolver {
     /// 添加内在尺寸约束
     fn add_intrinsic_size_constraints(&mut self, element: &Element) -> Result<(), SolverError> {
         if let Element::Text {
-                content,
-                properties,
-                constraints,
-                ..
-            } = element {
+            content,
+            properties,
+            constraints,
+            ..
+        } = element
+        {
             // 检查是否已有显式的宽高约束
             let has_width_constraint = constraints.iter().any(|c| {
                 matches!(
@@ -174,10 +175,11 @@ impl LayoutSolver {
                 }
             }
         } else if let Element::Image {
-                source,
-                constraints,
-                ..
-            } = element {
+            source,
+            constraints,
+            ..
+        } = element
+        {
             // 检查是否已有显式的宽高约束
             let has_width_constraint = constraints.iter().any(|c| {
                 matches!(
@@ -682,6 +684,28 @@ impl LayoutSolver {
             )?;
         }
 
+        // 容器宽度等于最宽子元素的宽度
+        if !children.is_empty() {
+            // 创建一个新的变量来表示最大宽度
+            let max_width_var = Variable::new();
+            
+            // 为每个子元素添加约束：max_width >= child_width
+            for child in children {
+                let child_vars = self
+                    .variables
+                    .get(child.id())
+                    .ok_or_else(|| SolverError::ElementNotFound(child.id().clone()))?;
+                
+                self.solver.add_constraint(
+                    max_width_var | GE(REQUIRED) | child_vars.width
+                )?;
+            }
+            
+            // 容器宽度等于最大宽度
+            self.solver
+                .add_constraint(stack_vars.width | EQ(REQUIRED) | max_width_var)?;
+        }
+
         Ok(())
     }
 
@@ -753,6 +777,28 @@ impl LayoutSolver {
             self.solver.add_constraint(
                 stack_vars.width | EQ(REQUIRED) | (last_vars.right - stack_vars.x),
             )?;
+        }
+
+        // 容器高度等于最高子元素的高度
+        if !children.is_empty() {
+            // 创建一个新的变量来表示最大高度
+            let max_height_var = Variable::new();
+            
+            // 为每个子元素添加约束：max_height >= child_height
+            for child in children {
+                let child_vars = self
+                    .variables
+                    .get(child.id())
+                    .ok_or_else(|| SolverError::ElementNotFound(child.id().clone()))?;
+                
+                self.solver.add_constraint(
+                    max_height_var | GE(REQUIRED) | child_vars.height
+                )?;
+            }
+            
+            // 容器高度等于最大高度
+            self.solver
+                .add_constraint(stack_vars.height | EQ(REQUIRED) | max_height_var)?;
         }
 
         Ok(())
