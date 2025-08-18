@@ -1,0 +1,39 @@
+template:
+  width: 800
+  height: 600
+  background: "#f0f0f0"
+
+container:
+  display: flex
+  flex_direction: column
+  justify_content: center
+  align_items: center
+  padding: 20
+  children:
+    - type: text
+      content: "{{title}}"
+      font_size: 48
+      color: "#333333"
+      font_weight: bold
+      margin_bottom: 20
+    
+    - type: text
+      content: "{{subtitle}}"
+      font_size: 24
+      color: "#666666"
+      margin_bottom: 40
+    
+    - type: container
+      display: flex
+      flex_direction: row
+      gap: 20
+      children:
+        - type: text
+          content: "Author: {{author}}"
+          font_size: 16
+          color: "#888888"
+        
+        - type: text
+          content: "Date: {{date}}"
+          font_size: 16
+          color: "#888888"

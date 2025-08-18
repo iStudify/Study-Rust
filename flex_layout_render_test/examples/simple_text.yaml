@@ -1,0 +1,16 @@
+template:
+  width: 400
+  height: 200
+  background: "#ffffff"
+
+container:
+  display: flex
+  flex_direction: column
+  justify_content: center
+  align_items: center
+  children:
+    - type: text
+      content: "Hello World"
+      font_family: "SourceHanSansSC-Regular"
+      font_size: 32
+      color: "#000000"

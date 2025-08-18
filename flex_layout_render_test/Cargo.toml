@@ -1,0 +1,66 @@
+[package]
+name = "flex_layout_render"
+version = "0.1.0"
+edition = "2021"
+authors = ["Gavin <gavin@example.com>"]
+description = "A flexible layout rendering engine with DSL support"
+license = "MIT"
+
+[dependencies]
+# 布局引擎
+taffy = { version = "0.3", features = ["serde"] }
+
+# 图像处理
+image = { version = "0.24", features = ["png", "jpeg", "webp"] }
+imageproc = "0.23"
+ab_glyph = "0.2"
+fontdue = "0.7"
+rusttype = "0.9"
+lazy_static = "1.4"
+
+# 序列化
+serde = { version = "1.0", features = ["derive"] }
+serde_yaml = "0.9"
+serde_json = "1.0"
+
+# 解析和模板
+handlebars = "4.4"
+regex = "1.10"
+
+# 错误处理
+thiserror = "1.0"
+anyhow = "1.0"
+
+# 异步支持
+tokio = { version = "1.0", features = ["full"], optional = true }
+
+# 颜色处理
+csscolorparser = "0.6"
+
+# 命令行
+clap = { version = "4.4", features = ["derive"] }
+
+# 日志
+log = "0.4"
+env_logger = "0.10"
+
+# 开发依赖
+[dev-dependencies]
+pretty_assertions = "1.4"
+tempfile = "3.8"
+criterion = "0.5"
+
+# 特性
+[features]
+default = ["async"]
+async = ["tokio"]
+
+# 基准测试 (暂时禁用)
+# [[bench]]
+# name = "layout_benchmark"
+# harness = false
+
+# 二进制文件
+[[bin]]
+name = "flex-render"
+path = "src/main.rs"

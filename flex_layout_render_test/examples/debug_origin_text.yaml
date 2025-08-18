@@ -1,0 +1,15 @@
+template:
+  width: 400
+  height: 300
+  background: "#FFFFFF"
+
+container:
+  background_color: "#F0F0F0"
+  border_color: "#000000"
+  border_width: 1
+  children:
+    - type: text
+      content: "调试文本"
+      font_size: 24
+      color: "#000000"
+      text_align: left

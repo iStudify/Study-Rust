@@ -1,0 +1,15 @@
+template:
+  width: 400
+  height: 200
+  background: "#ffffff"
+
+container:
+  display: flex
+  flex_direction: column
+  justify_content: center
+  align_items: center
+  children:
+    - type: text
+      content: "CENTER"
+      font_size: 48
+      color: "#ff0000"

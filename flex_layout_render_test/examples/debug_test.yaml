@@ -1,0 +1,19 @@
+template:
+  width: 400
+  height: 300
+  background: "#FFFFFF"
+
+container:
+  display: flex
+  flex_direction: column
+  justify_content: center
+  align_items: center
+  background: "#F0F0F0"
+  border_color: "#000000"
+  border_width: 1
+  children:
+    - type: text
+      content: "Debug Test"
+      font_size: 24
+      color: "#000000"
+      text_align: center
