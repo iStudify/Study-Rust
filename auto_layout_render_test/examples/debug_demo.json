@@ -45,15 +45,15 @@
       "constraints": [
         {
           "type": "top",
-          "constant": 0
+          "constant": 16
         },
         {
           "type": "leading",
-          "constant": 0
+          "constant": 16
         },
         {
           "type": "trailing",
-          "constant": 0
+          "constant": 16
         },
         {
           "type": "height",
@@ -188,7 +188,7 @@
             {
               "type": "top",
               "target": "content_stack",
-              "constant": 0
+              "constant": 20
             },
             {
               "type": "centerX",
